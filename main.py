@@ -1,42 +1,51 @@
-import sys
+import os
+from flask import Flask, flash, request, redirect, render_template
+from werkzeug.utils import secure_filename
 
-from google.cloud import automl_v1beta1
-from google.cloud.automl_v1beta1.proto import service_pb2
+from utils import get_prediction, upload_cloud, convert_img
+from utils import lbl_score, allowed_file
 
-#define class labels
-class_dict = {'c0':'safe driving', 'c1':'texting - right', 'c2': 'talking on the phone - right', 'c3': 'texting - left',
-'c4': 'talking on the phone - left', 'c5': 'operating the radio', 'c6': 'drinking',
-'c7': 'reaching behind', 'c8': 'hair and makeup', 'c9': 'talking to passenger'}
+UPLOAD_FOLDER = '/tmp'
+bucket_name = 'stable-hybrid-249623.appspot.com'
+project_id = 'stable-hybrid-249623'
+model_id = 'ICN4772510494057073039'
 
-# 'content' is base-64-encoded image data.
-def get_prediction(content, project_id, model_id):
-  prediction_client = automl_v1beta1.PredictionServiceClient()
+app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-  name = 'projects/{}/locations/us-central1/models/{}'.format(project_id, model_id)
-  payload = {'image': {'image_bytes': content }}
-  params = {}
-  request = prediction_client.predict(name, payload, params)
-  return request  # waits till request is returned
 
-#convert predicted label (e.g. c0, c1) to text (e.g. 'safe driving')
-def get_label(pred):
-    label = class_dict[pred]
-    return label
+@app.route('/', methods=['GET', 'POST'])
+def upload_file():
+    if request.method == 'POST':
 
-if __name__ == '__main__':
-  file_path = sys.argv[1]
-  project_id = 'stable-hybrid-249623'
-  model_id = 'ICN4772510494057073039'
+        # check if the post request has the file part
+        if 'file' not in request.files:
+            flash('No file part')
+            return redirect(request.url)
+        file = request.files['file']
 
-  with open(file_path, 'rb') as ff:
-    content = ff.read()
+        # if user does not select file, browser also
+        # submit an empty part without filename
+        if file.filename == '':
+            flash('No selected file')
+            return redirect(request.url)
 
-  prediction = get_prediction(content, project_id, model_id)
-  #convert prediction received from model into readable results
-  pred_label = prediction.payload[0].display_name
-  lbl = get_label(pred_label)
-  score = prediction.payload[0].classification.score
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(filepath)
 
-  #print label and score
-  print("Prediction:",pred_label,"-",lbl)
-  print("Score:",score)
+            # Upload file to cloud storage
+            upload_cloud(bucket_name, filename, filepath)
+
+            # Open image file and convert to required formats
+            img, upl_img = convert_img(file)
+
+            # Get prediction from AutoML model
+            prediction = get_prediction(img, project_id,  model_id)
+
+            # Convert prediction received from model into readable results
+            response = lbl_score(prediction)
+
+            return render_template('predict.html', data=response, img=upl_img)
+    return render_template('index.html')

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Distracted Driver Detection App</title>
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Raleway&display=swap" rel="stylesheet">
+	<style>
+		* {
+        font-size:20px;
+    }
+  </style>
+</head>
+<body>
+	<h1 style="font-family: 'Raleway';text-align:center;font-size:200%;">Distracted Driver Detection</h1>
+	<p style="font-family: 'Open Sans';"> Image Prediction </p>
+	<p></p>	<p></p>
+    <img src="data:image/jpg;base64,{{img|safe}}"/>
+	<p style="font-family: 'Open Sans';"> <b>Prediction:</b> {{data.prediction.label}}</p>
+	<p style="font-family: 'Open Sans';"> <b>Score:</b> {{data.prediction.score}}</p>
+    <form action="https://stable-hybrid-249623.appspot.com">
+        <input type="submit" value="Upload another image" />
+    </form>
+</body>
+</html>

@@ -27,4 +27,4 @@ A simple webpage was designed to access this application. A user can upload any 
 All image data and model API is stored in a GCP storage bucket. Future images parsed to the model will also be retained in the storage bucket to add to existing data set for model retraining as needed.
 
 ### Link
-The App Engine webpage can be accessed at "https://stable-hybrid-249623.appspot.com" <<currently disabled>>
+The App Engine webpage can be accessed at "https://stable-hybrid-249623.appspot.com" (currently disabled)

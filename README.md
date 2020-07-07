@@ -28,3 +28,7 @@ All image data and model API is stored in a GCP storage bucket. Future images pa
 
 ### Link
 The App Engine webpage was accessible at "https://stable-hybrid-249623.appspot.com" (currently disabled)
+
+### Keras Model
+Refer to the following link for the Jupyter notebook containing the Keras CNN model for this project:
+https://github.com/RosePatrick/SpringboardRP/tree/master/Capstone
